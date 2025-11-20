@@ -1,105 +1,113 @@
 # Databricks Genie API Integration Demo
 
-
-![](./assets/genie_room0.png)
-![](./assets/genie-space.png)
-![](./assets/genie-space4.png)
+> **Note**: This code is based on the excellent work by [Vivian Xie](https://github.com/vivian-xie-db) and the original [genie_space repository](https://github.com/vivian-xie-db/genie_space/tree/main). We extend our gratitude to Vivian for creating this foundational implementation that demonstrates Databricks Genie API integration.
 
 This repository demonstrates how to integrate Databricks' AI/BI Genie Conversation APIs into custom Databricks Apps applications, allowing users to interact with their structured data using natural language.
 
-You can also click the Generate insights button and generate deep analysis and trends of your data.
-![](./assets/insights1.png)
-![](./assets/insights2.png)
-
-
-
 ## Overview
 
-This app is a Dash application featuring a chat interface powered by Databricks Genie Conversation APIs, built specifically to run as a Databricks App. This integration showcases how to leverage Databricks' platform capabilities to create interactive data applications with minimal infrastructure overhead.
+This app is a modern Dash application featuring an intuitive chat interface powered by Databricks Genie Conversation APIs, built specifically to run as a Databricks App. This integration showcases how to leverage Databricks' platform capabilities to create interactive data applications with minimal infrastructure overhead.
 
-The Databricks Genie Conversation APIs (in Public Preview) enable you to embed AI/BI Genie capabilities into any application, allowing users to:
+The Databricks Genie Conversation APIs enable you to embed AI/BI Genie capabilities into any application, allowing users to:
+
 - Ask questions about their data in natural language
 - Get SQL-powered insights without writing code
 - Follow up with contextual questions in a conversation thread
+- View generated SQL queries and results in an interactive format
 
 ## Key Features
 
+- **Modern Chat Interface**: Clean, responsive design with sidebar navigation and conversation history
 - **Powered by Databricks Apps**: Deploy and run directly from your Databricks workspace with built-in security and scaling
 - **Zero Infrastructure Management**: Leverage Databricks Apps to handle hosting, scaling, and security
 - **Workspace Integration**: Access your data assets and models directly from your Databricks workspace
 - **Natural Language Data Queries**: Ask questions about your data in plain English
 - **Stateful Conversations**: Maintain context for follow-up questions
+- **Interactive SQL Display**: View and toggle generated SQL queries with syntax highlighting
+- **Conversation Management**: Start new chats and navigate between conversation history
+- **Customizable Welcome Experience**: Edit welcome messages and suggestion prompts
+- **Real-time Feedback**: Thumbs up/down buttons for response quality feedback
 
 ## Example Use Case
 
-This demo shows how to create a simple interface that connects to the Genie API, allowing users to:
+This demo shows how to create an interactive interface that connects to the Genie API, allowing users to:
+
 1. Start a conversation with a question about their supply chain data
-2. View generated SQL and results
+2. View generated SQL queries and results in an interactive format
 3. Ask follow-up questions that maintain context
+4. Navigate between different conversations using the sidebar
+5. Provide feedback on response quality
 
-## Deploying to Databricks apps
+## Deploying to Databricks Apps
 
-1. Clone the repository to workspace directory such as 
-/Workspace/Users/wenwen.xie@databricks.com/genie_space
-```bash
-git clone https://github.com/vivian-xie-db/genie_space.git
-```
-![](./assets/genie-space1.png)
+### Prerequisites
 
+- Set up your Python environment and the [Databricks CLI](https://docs.databricks.com/dev-tools/cli/index.html)
+- Ensure you have access to a Databricks workspace with Genie Spaces enabled
 
-2. Change the "SPACE_ID" environment value to the ID of your Genie space, for example, 01f02a31663e19b0a18f1a2ed7a435a7 in the app.yaml file in the root directory and add 
-a model serving endpoint in App resources for adding a model for insights generation:
+### Local Development Setup
 
-```yaml
-command:
-- "python"
-- "app.py"
+1. **Edit in your IDE**
+   - Set up your Python environment and the Databricks CLI
 
-env:
-- name: "SPACE_ID"
-  value: "space_id"
-- name: "SERVING_ENDPOINT_NAME"
-  valueFrom: "serving_endpoint"
+2. **Clone this repo locally**
+   ```bash
+   git clone https://github.com/PortoLucas1/dbx-apps-genie-api.git
+   ```
 
-```
-![](./assets/genie-space7.png)
-![](./assets/genie-space8.png)
+3. **Sync future edits back to Databricks**
+   Remember to edit this path to match your context. I suggest starting with your personal Workspace folder for development, but saving it to a non-personal folder in production.
+   ```bash
+   databricks sync --watch . /Workspace/Users/your.email@databricks.com/genie-api
+   ```
 
-3. Create an app in the Databricks apps interface and then deploy the path to the code
+### Deploy to Databricks Apps
 
-![](./assets/genie-space2.png)
+1. **Create the app** (first time only):
+   This may take a few minutes, we're creating and starting some compute to be used by the app's frontend.
+   ```bash
+   databricks apps create genie-chat-ui --description "Genie Chat Interface"
+   ```
 
-4. Grant the service principal can_run permission to the genie space.
-![](./assets/genie-space9.png)
+2. **Update the environment variables** in the app.yaml file:
+   ```yaml
+   command:
+   - "python"
+   - "app.py"
 
-5. Grant the service principal permission can_use to the SQL warehouse that powers genie
+   env:
+   - name: SPACE_ID
+     valueFrom: genie-space
+   - name: SQL_WAREHOUSE_ID
+     valueFrom: sql-warehouse
+   ```
 
-![](./assets/genie-space5.png)
+3. **Deploy the app**:
+   Remember to edit the path here to match where you synced your code to.
+   ```bash
+   databricks apps deploy genie-chat-ui --source-code-path /Workspace/Users/your.email@databricks.com/genie-api
+   ```
+   You can leave out the full path for subsequent deploys.
 
+4. **Configure permissions**:
+   - Grant the service principal `can_run` permission to the Genie space
+   - Grant the service principal `can_use` permission to the SQL warehouse that powers Genie
+   - Grant the service principal appropriate privileges to the underlying resources (catalog, schema, tables)
 
-![](./assets/genie-space6.png)
+   **Note**: For demo purposes, ALL PRIVILEGES are used, but you can be more restrictive with `USE CATALOG` on catalog, `USE SCHEMA` on schema, and `SELECT` on tables for production environments.
 
-6. Grant the service principal appropriate privileges to the underlying resources such as catalog, schema and tables.
+5. **Open your app in the browser**. If it doesn't work, check out the logs.
 
-   note: I am using ALL PRIVILEGES for demo purpose but you can do use catalog on catalog, use schema on schema and select on tables
+### Troubleshooting
 
-![](./assets/table1.png)
+| Problem | Solution |
+|---------|----------|
+| Missing package or wrong package version | Add to requirements.txt |
+| Permissions issue | Give access `app-{app-id}` to the resource |
+| Missing environment variable | Add to the env section of app.yaml |
+| Running the wrong command line at startup | Add to the command section of app.yaml |
 
-![](./assets/table2.png)
-
-![](./assets/table3.png)
-
-6. Troubleshooting issues:
-   
-   For trouble shooting, navigate to the genie room monitoring page and check if the query has been sent successfully to the genie room via the API. 
-
-![](./assets/troubleshooting1.png)
-
-   Click open the query and check if there is any error or any permission issues.
-
-
-![](./assets/troubleshooting2.png)
-
+For additional troubleshooting, navigate to the Genie space monitoring page and check if the query has been sent successfully to the Genie space via the API. Click open the query and check if there is any error or any permission issues.
 
 ## Resources
 
