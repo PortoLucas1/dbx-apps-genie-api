@@ -1,0 +1,9 @@
+command:
+- "python"
+- "app.py"
+
+env:
+- name: SPACE_ID
+  valueFrom: genie-space
+- name: SQL_WAREHOUSE_ID
+  valueFrom: sql-warehouse
